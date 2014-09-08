@@ -1,9 +1,0 @@
-@namespace("sss.types.examples")
-protocol WordCountJob {
-
-  record TokenCount {
-    string token;
-    long count;
-  }
-
-}

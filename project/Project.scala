@@ -6,6 +6,10 @@ import scalariform.formatter.preferences._
 import ScalacSettings._
 import SparkSettings._
 import LogSettings._
+import sbtassembly.Plugin._
+import AssemblyKeys._
+import sbtavro.SbtAvro._
+
 
 object YPLeadsExplorationBuild extends Build {
   val PROJECT_NAME = "ypleadsexploration"
@@ -60,10 +64,6 @@ object YPLeadsExplorationBuild extends Build {
     ScalariformKeys.preferences := configureScalariform(FormattingPreferences())
   )
 
-  import sbtassembly.Plugin._
-  import AssemblyKeys._
-  import sbtavro.SbtAvro._
-
   lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ avroSettings ++ sparkSettings ++ Seq(
     resolvers ++= hadoopResolvers,
     libraryDependencies ++= hadoopDeps,
@@ -111,21 +111,14 @@ object YPLeadsExplorationBuild extends Build {
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
-    .aggregate(core, scalding, spark)
+    .aggregate(core, spark)
 
   lazy val core = Project(PROJECT_NAME+"-core", file(PROJECT_NAME+"-core"))
     .configs(IntegrationTest)
+    .settings(defaultSettings: _*)
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
-
-  lazy val scalding = Project(s"${PROJECT_NAME}-scalding", file(s"${PROJECT_NAME}-scalding"))
-    .configs(IntegrationTest)
-    .settings(hadoopSettings: _*)
-    .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
-    .settings(parallelExecution in IntegrationTest := false)
-    .settings(SbtStartScript.startScriptForClassesSettings: _*)
-    .dependsOn(core)
 
   lazy val spark = Project(s"${PROJECT_NAME}-spark", file(s"${PROJECT_NAME}-spark"))
     .configs(IntegrationTest)
