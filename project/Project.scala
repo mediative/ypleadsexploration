@@ -4,9 +4,8 @@ import com.typesafe.sbt.SbtStartScript
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 
-//TODO change the name of the object to reflect your project name.
-object ScalabootBuild extends Build {
-  val PROJECT_NAME = "scalaboot" //TODO change this!
+object YPLeadsExplorationBuild extends Build {
+  val PROJECT_NAME = "ypleadsexploration"
   val HADOOP_JOBRUNNER = "sss.scalding.JobRunner"
 
   var commonResolvers = Seq(
