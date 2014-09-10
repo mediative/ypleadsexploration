@@ -12,7 +12,9 @@ import scala.language.reflectiveCalls
 /**
  * Several Utilities.
  */
-object Util extends Serializable {
+// TODO: since I am using this on a distributed environment, do I need to make it Serializable?
+// Read on: https://spark.apache.org/docs/latest/tuning.html
+object Util {
 
   /**
    * Protects the call on a function for the case where an Exception is thrown.
