@@ -3,6 +3,7 @@ import Keys._
 import com.typesafe.sbt.SbtStartScript
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
+import SparkSettings._
 
 object YPLeadsExplorationBuild extends Build {
   val PROJECT_NAME = "ypleadsexploration"
@@ -14,12 +15,16 @@ object YPLeadsExplorationBuild extends Build {
     "Scala-Tools" at "http://scala-tools.org/repo-releases/",
     "Sun GF Maven2 Repo" at "http://download.java.net/maven/glassfish",
     "Oracle Maven2 Repo" at "http://download.oracle.com/maven",
-    "Sonatype" at "http://oss.sonatype.org/content/repositories/release",
+    "cloudera-repo-releases" at "https://repository.cloudera.com/artifactory/repo/",
+    "ScalaTools releases at Sonatype" at "https://oss.sonatype.org/content/repositories/releases/",
+    "ScalaTools snapshots at Sonatype" at "https://oss.sonatype.org/content/repositories/snapshots/",
     "spy" at "http://files.couchbase.com/maven2/",
     "Twitter" at "http://maven.twttr.com/"
   )
 
   var commonDeps = Seq(
+    // date-time classes:
+    "com.github.nscala-time" %% "nscala-time" % "1.2.0", // https://github.com/nscala-time/nscala-time
     "org.scalaz" %% "scalaz-core" % "7.0.6",
     "com.chuusai" % "shapeless" % "2.0.0" cross CrossVersion.full,
     "org.scalatest" %% "scalatest" % "2.1.6" % "test,it",
@@ -35,7 +40,6 @@ object YPLeadsExplorationBuild extends Build {
     "com.twitter" %% "scalding-core" % "0.10.0",
     "com.twitter" %% "scalding-avro" % "0.10.0",
     "com.twitter" %% "scalding-commons" % "0.10.0"
-    // "org.apache.hadoop" % "hadoop-core" % "2.3.0-mr1-cdh5.0.1" % "provided",
   )
 
   def configureScalariform(pref: IFormattingPreferences): IFormattingPreferences = {
@@ -58,7 +62,7 @@ object YPLeadsExplorationBuild extends Build {
   import AssemblyKeys._
   import sbtavro.SbtAvro._
 
-  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ avroSettings ++ Seq(
+  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ avroSettings ++ sparkSettings ++ Seq(
     resolvers ++= hadoopResolvers,
     libraryDependencies ++= hadoopDeps,
 
@@ -92,6 +96,8 @@ object YPLeadsExplorationBuild extends Build {
         {
           case PathList("javax", "servlet", xs @ _*) => MergeStrategy.first
           case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+          case PathList(ps @ _*) if ps.last endsWith "LICENSE.txt" => MergeStrategy.first
+          case PathList(ps @ _*) if ps.last endsWith "NOTICE.txt" => MergeStrategy.first
           case "project.clj" => MergeStrategy.discard // Leiningen build files
           case x => old(x)
         }
@@ -103,11 +109,10 @@ object YPLeadsExplorationBuild extends Build {
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
-    .aggregate(core, scalding)
+    .aggregate(core, scalding, spark)
 
   lazy val core = Project(PROJECT_NAME+"-core", file(PROJECT_NAME+"-core"))
     .configs(IntegrationTest)
-    .settings(defaultSettings: _*)
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
@@ -119,4 +124,13 @@ object YPLeadsExplorationBuild extends Build {
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
     .dependsOn(core)
+
+  lazy val spark = Project(s"${PROJECT_NAME}-spark", file(s"${PROJECT_NAME}-spark"))
+    .configs(IntegrationTest)
+    .settings(hadoopSettings: _*)
+    .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
+    .settings(parallelExecution in IntegrationTest := false)
+    .settings(SbtStartScript.startScriptForClassesSettings: _*)
+    .dependsOn(core)
+
 }
