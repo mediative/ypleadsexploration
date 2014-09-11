@@ -8,13 +8,14 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
 import org.joda.time.DateTime
 import scala.language.reflectiveCalls
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * Several Utilities.
  */
 // TODO: since I am using this on a distributed environment, do I need to make it Serializable?
 // Read on: https://spark.apache.org/docs/latest/tuning.html
-object Util {
+object Util extends StrictLogging {
 
   /**
    * Protects the call on a function for the case where an Exception is thrown.
@@ -66,14 +67,12 @@ object Util {
     }
 
     def fileExists(fileName: String): Boolean = {
-      // TODO: replace 'println' with some kind of logger (maybe scalaz's?)
-      val noExceptionCheck = manageOnException[Path, Boolean](getFileSystem.exists(_), e => println(s"Check of file ${fileName}: ${e.getMessage}")) _
+      val noExceptionCheck = manageOnException[Path, Boolean](getFileSystem.exists(_), e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
       noExceptionCheck(new Path(fileName)).getOrElse(false)
     }
 
     def deleteFile(fileName: String): Boolean = {
-      // TODO: replace 'println' with some kind of logger (maybe scalaz's?)
-      val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => println(s"Check of file ${fileName}: ${e.getMessage}")) _
+      val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
       noExceptionDelete(new Path(fileName)).isDefined
     }
 

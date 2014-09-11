@@ -4,6 +4,7 @@ import com.typesafe.sbt.SbtStartScript
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 import SparkSettings._
+import LogSettings._
 
 object YPLeadsExplorationBuild extends Build {
   val PROJECT_NAME = "ypleadsexploration"
@@ -47,7 +48,7 @@ object YPLeadsExplorationBuild extends Build {
       .setPreference(AlignParameters, true)
   }
 
-  val defaultSettings = Defaults.defaultSettings ++ Defaults.itSettings ++ scalariformSettings ++ Seq(
+  val defaultSettings = Defaults.defaultSettings ++ Defaults.itSettings ++ scalariformSettings ++ logSettings ++ Seq(
     libraryDependencies ++= commonDeps,
     resolvers ++= commonResolvers,
     retrieveManaged := true,
