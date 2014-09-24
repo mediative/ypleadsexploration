@@ -78,6 +78,31 @@ class BaseTest extends FlatSpec {
     withClue(s"From = ${now}, To = ${yesterdayLastSecond}") { assert(Date.getAllDays(fromDate = now, toDate = yesterdayLastSecond).length == 0) }
   }
 
+  "HDFS List of Files in Folder" should "be empty for a non-existent directory" in {
+    val directoryName = "lalala"
+    assert(!HDFS.directoryExists(directoryName))
+    Set(true, false) foreach { r => assert(HDFS.listOfFilesInFolder(directoryName, recursive = r).isEmpty) }
+  }
+
+  it should "start with name of folder" in {
+    val directoryName = "lalala"
+    Set(true, false) foreach { r =>
+      HDFS.listOfFilesInFolder(directoryName, recursive = r) foreach { fileName =>
+        assert(fileName.startsWith(directoryName))
+      }
+    }
+  }
+
+  it should "start with name of folder when folder is HERE" in {
+    val directoryName = "."
+    assert(HDFS.directoryExists(directoryName))
+    Set(true, false) foreach { r =>
+      HDFS.listOfFilesInFolder(directoryName, recursive = r) foreach { fileName =>
+        assert(fileName.startsWith(directoryName))
+      }
+    }
+  }
+
   "HDFS File Exists" should "reject stupid files" in {
     assert(!HDFS.fileExists("lalala"))
   }

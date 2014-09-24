@@ -57,6 +57,7 @@ object Util extends StrictLogging {
   }
 
   object HDFS extends Serializable {
+    import scala.language.postfixOps
 
     /**
      * Gets a "local" filesystem. Meaning that it accesses the files in a local
@@ -64,6 +65,36 @@ object Util extends StrictLogging {
      */
     private def getFileSystem: org.apache.hadoop.fs.FileSystem = {
       FileSystem.get(new Configuration())
+    }
+
+    /**
+     * Computes a set of full file names contained in a folder.
+     * @param folderName
+     * @param recursive true if internal folders have to be scanned too
+     * @return a Set of Strings
+     */
+    def listOfFilesInFolder(folderName: String, recursive: Boolean): Set[String] = {
+      try {
+        val p = new Path(folderName)
+        if (!getFileSystem.getFileStatus(p).isDir) {
+          logger.error(s"${folderName} is *not* a folder")
+          Set.empty
+        } else {
+          getFileSystem.listStatus(new Path(folderName)).map { status =>
+            if (status.isDir) {
+              if (recursive) listOfFilesInFolder(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}", recursive)
+              else List.empty
+            } else {
+              List(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}")
+            }
+          }.flatten toSet
+        }
+      } catch {
+        case e: Exception => {
+          logger.error(s"Check of file ${folderName}: ${e.getMessage}")
+          Set.empty
+        }
+      }
     }
 
     /**
