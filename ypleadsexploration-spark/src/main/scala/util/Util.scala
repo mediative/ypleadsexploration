@@ -66,9 +66,37 @@ object Util extends StrictLogging {
       FileSystem.get(new Configuration())
     }
 
+    /**
+     * Checks if file exists AND if it meets the criteria of being a folder or not.
+     * @param fileOrDirectoryName Name of fiel or directory
+     * @param asAFolder If true, checks that it is a folder.
+     * @return true, if file or dir exists. false otherwise.
+     *
+     */
+    private[util] def fileExists(fileOrDirectoryName: String, asAFolder: Boolean): Boolean = {
+      val fs = getFileSystem
+      val noExceptionCheck = manageOnException[Path, Boolean](fs.exists(_), e => logger.error(s"Check of file ${fileOrDirectoryName}: ${e.getMessage}")) _
+      val p = new Path(fileOrDirectoryName)
+      noExceptionCheck(p).getOrElse(false) && (!asAFolder || fs.getFileStatus(p).isDir)
+    }
+
+    def directoryExists(fileName: String): Boolean = {
+      fileExists(fileName, asAFolder = true)
+    }
+
     def fileExists(fileName: String): Boolean = {
-      val noExceptionCheck = manageOnException[Path, Boolean](getFileSystem.exists(_), e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
-      noExceptionCheck(new Path(fileName)).getOrElse(false)
+      fileExists(fileName, asAFolder = false)
+    }
+
+    def mv(fileNameSrc: String, fileNameDst: String): Boolean = {
+      try {
+        getFileSystem.rename(new Path(fileNameSrc), new Path(fileNameDst))
+      } catch {
+        case e: Exception => {
+          logger.error(s"Move ${fileNameSrc} => ${fileNameDst}: ${e.getMessage}")
+          false
+        }
+      }
     }
 
     def deleteFile(fileName: String): Boolean = {

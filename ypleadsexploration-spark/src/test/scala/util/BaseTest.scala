@@ -82,12 +82,33 @@ class BaseTest extends FlatSpec {
     assert(!HDFS.fileExists("lalala"))
   }
 
-  it should "see created files" in {
+  it should "see created files as FILES, not as a DIRECTORIES" in {
     val fileName = "luis.txt"
     withClue(s"Impossible to create HDFS file ${fileName}") { assert(writeASampleFile(fileName)) }
     assert(HDFS.fileExists(fileName))
+    assert(!HDFS.directoryExists(fileName))
     withClue(s"Impossible to DELETE HDFS file ${fileName}") { assert(HDFS.deleteFile(fileName)) }
     withClue(s"NOT PROPERLY CLEANED AFTER (${fileName})") { assert(!HDFS.fileExists(fileName)) }
+  }
+
+  "HDFS File mv" should "fail when source file does not exist" in {
+    val stupidFileName = "lalala"
+    assert(!HDFS.fileExists(stupidFileName))
+    assert(!HDFS.mv(stupidFileName, "righthere.txt"))
+  }
+
+  it should "work when source file exists" in {
+    val srcFileName = "luis.txt"
+    val dstFileName = "anotherfile.txt"
+    withClue(s"Impossible to create HDFS file ${srcFileName}") { assert(writeASampleFile(srcFileName)) }
+    assert(HDFS.fileExists(srcFileName))
+    assert(HDFS.mv(srcFileName, dstFileName))
+    // clean up source file:
+    withClue(s"Impossible to DELETE HDFS file ${srcFileName}") { assert(HDFS.deleteFile(srcFileName)) }
+    withClue(s"NOT PROPERLY CLEANED AFTER (${srcFileName})") { assert(!HDFS.fileExists(srcFileName)) }
+    // clean up dst file:
+    withClue(s"Impossible to DELETE HDFS file ${dstFileName}") { assert(HDFS.deleteFile(dstFileName)) }
+    withClue(s"NOT PROPERLY CLEANED AFTER (${dstFileName})") { assert(!HDFS.fileExists(dstFileName)) }
   }
 
   "Levenshtein distance on two identical strings" should "be 0" in {
