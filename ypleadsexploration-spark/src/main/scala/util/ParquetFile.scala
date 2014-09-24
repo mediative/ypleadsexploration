@@ -69,6 +69,18 @@ object ParquetFile {
     empty
   }
 
+  /**
+   * Interprets the information found in an HDFS folder as the different parts of a Parquet file.
+   * @param folderName The folder in question.
+   * @return a parquet File
+   * @note The motivation for this utility is the following:
+   *       From Spark we can execute a "map-reduce" job that will transform an unstructured text file
+   *       into a Parquet file. In that case, the result will be written into a directory with differents
+   *       parts in it:
+   *       (*) a file containing the status of the job (called typically _SUCCESS if all went well)
+   *       (*) a file with the metadata of all the Parquet files contained in the folder. This file is called _metadata
+   *       (*) a bunch of files, with names part-r-* (example: part-r-0000, part-r-0001, etc).
+   */
   def loadFromHDFSFolder(folderName: String): ParquetFile = {
     loadFromListOfFiles(allParquetFiles = HDFS.listOfFilesInFolder(folderName, recursive = false).filter(_ != "_SUCCESS"))
   }
