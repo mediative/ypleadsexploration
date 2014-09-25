@@ -56,18 +56,18 @@ case object EmptyParquetFile extends ParquetFile {
 
 object ParquetFile {
   // smart (?) constructors
-  def empty: ParquetFile = EmptyParquetFile
+  def apply(): ParquetFile = EmptyParquetFile
   def apply(fileNames: String*) = ParquetFileImplicitMetadata(fileNames: _*)
   def apply(metadataFileName: String, fileNames: String*) = ParquetFileExplicitMetadata(metadataFileName = metadataFileName, fileNames: _*)
 
   // utilities
   def merge(parquetFiles: ParquetFile*): ParquetFile = {
-    parquetFiles.foldLeft(empty) { case (result, toProcess) => result ++ toProcess }
+    parquetFiles.foldLeft(EmptyParquetFile: ParquetFile) { case (result, toProcess) => result ++ toProcess }
   }
 
   def loadFromFolder(folderName: String): ParquetFile = {
     // TODO
-    empty
+    apply()
   }
 
   /**
@@ -99,7 +99,7 @@ object ParquetFile {
       ParquetFileExplicitMetadata(metadataFileNameOpt.get, allParquetFiles.filter(_ != metadataFileNameOpt.get) toSeq: _*)
     } else {
       allParquetFiles.size match {
-        case 0 => empty
+        case 0 => EmptyParquetFile
         case _ => ParquetFileImplicitMetadata(allParquetFiles toSeq: _*)
       }
     }
