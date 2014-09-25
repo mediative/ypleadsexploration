@@ -67,7 +67,7 @@ object ParquetFile {
 
   def loadFromFolder(folderName: String): ParquetFile = {
     // TODO
-    apply()
+    ???
   }
 
   /**
