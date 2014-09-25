@@ -6,6 +6,7 @@ import Util._
 /**
  * Definition of the differents ways a Parquet file can be represented and kept.
  *
+ * @note Here we define a Monoid on ParquetFile's. TODO: Tie this with Monoid's typeclass in scalaz.
  */
 sealed trait ParquetFile {
   // Composition of Parquet files
