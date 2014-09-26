@@ -5,10 +5,22 @@ import java.io.PrintWriter
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
 import org.joda.time.DateTime
-import org.scalatest.FlatSpec
+import org.scalatest.{ BeforeAndAfter, FlatSpec }
 import util.Util._
 
-class BaseTest extends FlatSpec {
+class BaseTest extends FlatSpec with BeforeAndAfter {
+
+  // TODO: generate here a name that FOR SURE would make the directory non-existent
+  // (eg, a VERY long word?)
+  val nonExistentDirectoryName = "lalala"
+
+  before {
+    assert(!HDFS.directoryExists(nonExistentDirectoryName))
+  }
+
+  after {
+
+  }
 
   private def writeASampleFile(fileName: String): Boolean = {
     try {
@@ -79,16 +91,13 @@ class BaseTest extends FlatSpec {
   }
 
   "HDFS List of Files in Folder" should "be empty for a non-existent directory" in {
-    val directoryName = "lalala"
-    assert(!HDFS.directoryExists(directoryName))
-    Set(true, false) foreach { r => assert(HDFS.ls(directoryName, recursive = r).isEmpty) }
+    Set(true, false) foreach { r => assert(HDFS.ls(nonExistentDirectoryName, recursive = r).isEmpty) }
   }
 
   it should "start with name of folder" in {
-    val directoryName = "lalala"
     Set(true, false) foreach { r =>
-      HDFS.ls(directoryName, recursive = r) foreach { fileName =>
-        assert(fileName.startsWith(directoryName))
+      HDFS.ls(nonExistentDirectoryName, recursive = r) foreach { fileName =>
+        assert(fileName.startsWith(nonExistentDirectoryName))
       }
     }
   }
