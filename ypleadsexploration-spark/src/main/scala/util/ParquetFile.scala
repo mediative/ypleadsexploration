@@ -96,7 +96,7 @@ object ParquetFile {
   def loadFromHDFSFolder(folderName: String): ParquetFile = {
     import util.parquet.Representations._
 
-    val wrappedFilesInFolder = HDFS.listOfFilesInFolder(folderName, recursive = false).filter(_ != "_SUCCESS").map(Spark(_)).toSeq
+    val wrappedFilesInFolder = HDFS.ls(folderName, recursive = false).filter(_ != "_SUCCESS").map(Spark(_)).toSeq
     apply(wrappedFileNames = wrappedFilesInFolder: _*)
   }
 

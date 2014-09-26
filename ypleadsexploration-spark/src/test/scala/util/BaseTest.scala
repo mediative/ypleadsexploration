@@ -81,13 +81,13 @@ class BaseTest extends FlatSpec {
   "HDFS List of Files in Folder" should "be empty for a non-existent directory" in {
     val directoryName = "lalala"
     assert(!HDFS.directoryExists(directoryName))
-    Set(true, false) foreach { r => assert(HDFS.listOfFilesInFolder(directoryName, recursive = r).isEmpty) }
+    Set(true, false) foreach { r => assert(HDFS.ls(directoryName, recursive = r).isEmpty) }
   }
 
   it should "start with name of folder" in {
     val directoryName = "lalala"
     Set(true, false) foreach { r =>
-      HDFS.listOfFilesInFolder(directoryName, recursive = r) foreach { fileName =>
+      HDFS.ls(directoryName, recursive = r) foreach { fileName =>
         assert(fileName.startsWith(directoryName))
       }
     }
@@ -97,7 +97,7 @@ class BaseTest extends FlatSpec {
     val directoryName = "."
     assert(HDFS.directoryExists(directoryName))
     Set(true, false) foreach { r =>
-      HDFS.listOfFilesInFolder(directoryName, recursive = r) foreach { fileName =>
+      HDFS.ls(directoryName, recursive = r) foreach { fileName =>
         assert(fileName.startsWith(directoryName))
       }
     }

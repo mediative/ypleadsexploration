@@ -73,7 +73,7 @@ object Util extends StrictLogging {
      * @param recursive true if internal folders have to be scanned too
      * @return a Set of Strings
      */
-    def listOfFilesInFolder(folderName: String, recursive: Boolean): Set[String] = {
+    def ls(folderName: String, recursive: Boolean): Set[String] = {
       try {
         val p = new Path(folderName)
         if (!getFileSystem.getFileStatus(p).isDir) {
@@ -82,7 +82,7 @@ object Util extends StrictLogging {
         } else {
           getFileSystem.listStatus(new Path(folderName)).map { status =>
             if (status.isDir) {
-              if (recursive) listOfFilesInFolder(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}", recursive)
+              if (recursive) ls(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}", recursive)
               else List.empty
             } else {
               List(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}")
