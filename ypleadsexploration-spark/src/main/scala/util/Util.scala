@@ -130,9 +130,17 @@ object Util extends StrictLogging {
       }
     }
 
-    def deleteFile(fileName: String): Boolean = {
-      val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
-      noExceptionDelete(new Path(fileName)).isDefined
+    /**
+     * Deletes a file on HDFS.
+     * @param fileName The name of the file to be deleted.
+     * @return true if the file no longer exists after this invocation. false otherwise.
+     */
+    def rm(fileName: String): Boolean = {
+      if (fileExists(fileName) || directoryExists(fileName)) {
+        val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
+        noExceptionDelete(new Path(fileName)).isDefined
+      }
+      !fileExists(fileName) && !directoryExists(fileName)
     }
 
   }

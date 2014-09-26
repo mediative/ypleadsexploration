@@ -121,7 +121,7 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     withClue(s"Impossible to create HDFS file ${fileName}") { assert(writeASampleFile(fileName)) }
     assert(HDFS.fileExists(fileName))
     assert(!HDFS.directoryExists(fileName))
-    withClue(s"Impossible to DELETE HDFS file ${fileName}") { assert(HDFS.deleteFile(fileName)) }
+    withClue(s"Impossible to DELETE HDFS file ${fileName}") { assert(HDFS.rm(fileName)) }
     withClue(s"NOT PROPERLY CLEANED AFTER (${fileName})") { assert(!HDFS.fileExists(fileName)) }
   }
 
@@ -138,10 +138,10 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     assert(HDFS.fileExists(srcFileName))
     assert(HDFS.mv(srcFileName, dstFileName))
     // clean up source file:
-    withClue(s"Impossible to DELETE HDFS file ${srcFileName}") { assert(HDFS.deleteFile(srcFileName)) }
+    withClue(s"Impossible to DELETE HDFS file ${srcFileName}") { assert(HDFS.rm(srcFileName)) }
     withClue(s"NOT PROPERLY CLEANED AFTER (${srcFileName})") { assert(!HDFS.fileExists(srcFileName)) }
     // clean up dst file:
-    withClue(s"Impossible to DELETE HDFS file ${dstFileName}") { assert(HDFS.deleteFile(dstFileName)) }
+    withClue(s"Impossible to DELETE HDFS file ${dstFileName}") { assert(HDFS.rm(dstFileName)) }
     withClue(s"NOT PROPERLY CLEANED AFTER (${dstFileName})") { assert(!HDFS.fileExists(dstFileName)) }
   }
 
