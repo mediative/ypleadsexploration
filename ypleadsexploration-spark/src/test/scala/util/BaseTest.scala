@@ -137,9 +137,8 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     withClue(s"Impossible to create HDFS file ${srcFileName}") { assert(writeASampleFile(srcFileName)) }
     assert(HDFS.fileExists(srcFileName))
     assert(HDFS.mv(srcFileName, dstFileName))
-    // clean up source file:
-    withClue(s"Impossible to DELETE HDFS file ${srcFileName}") { assert(HDFS.rm(srcFileName)) }
-    withClue(s"NOT PROPERLY CLEANED AFTER (${srcFileName})") { assert(!HDFS.fileExists(srcFileName)) }
+    // source file should not exist anymore...
+    withClue(s"${srcFileName} should not exist after a MOVE!") { assert(!HDFS.fileExists(srcFileName)) }
     // clean up dst file:
     withClue(s"Impossible to DELETE HDFS file ${dstFileName}") { assert(HDFS.rm(dstFileName)) }
     withClue(s"NOT PROPERLY CLEANED AFTER (${dstFileName})") { assert(!HDFS.fileExists(dstFileName)) }
