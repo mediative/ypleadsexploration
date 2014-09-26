@@ -49,6 +49,7 @@ object YPLeadsExplorationBuild extends Build {
   }
 
   val defaultSettings = Defaults.defaultSettings ++ Defaults.itSettings ++ scalariformSettings ++ logSettings ++ Seq(
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= commonDeps,
     resolvers ++= commonResolvers,
     retrieveManaged := true,
