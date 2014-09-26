@@ -2,11 +2,16 @@ package util
 
 import org.apache.hadoop.fs.Path
 import Util._
-
+import util.parquet.Representations.Spark
+import util.parquet.{ ctx, ParquetMetadataSemantics }
+import scala.language.higherKinds // cf: http://stackoverflow.com/questions/6246719/what-is-a-higher-kinded-type-in-scala
+import scala.language.postfixOps // to be able to do stuff like "Set(1,2,3) toSeq"
 /**
  * Definition of the differents ways a Parquet file can be represented and kept.
  *
  * @note Here we define a Monoid on ParquetFile's. TODO: Tie this with Monoid's typeclass in scalaz.
+ * @note All these constructors are private because I want the construction to happen through the smart constructors
+ *       present in the companion object
  */
 sealed trait ParquetFile {
   // Composition of Parquet files
@@ -19,7 +24,7 @@ sealed trait ParquetFile {
 }
 
 // A Parquet File can be a bunch of individual files, accompanied with a metadata file
-case class ParquetFileExplicitMetadata(metadataFileName: String, fileNames: String*) extends ParquetFile {
+private case class ParquetFileExplicitMetadata(metadataFileName: String, fileNames: String*) extends ParquetFile {
   override def ++(aParquetFile: ParquetFile): ParquetFile = {
     aParquetFile match {
       case EmptyParquetFile => this
@@ -33,7 +38,7 @@ case class ParquetFileExplicitMetadata(metadataFileName: String, fileNames: Stri
 
 // A Parquet File can be a bunch of individual files, with no explicit metadata.
 // In that case the metadata lives in the individual files
-case class ParquetFileImplicitMetadata(fileNames: String*) extends ParquetFile {
+private case class ParquetFileImplicitMetadata(fileNames: String*) extends ParquetFile {
   override def ++(aParquetFile: ParquetFile): ParquetFile = {
     aParquetFile match {
       case EmptyParquetFile => this
@@ -44,7 +49,7 @@ case class ParquetFileImplicitMetadata(fileNames: String*) extends ParquetFile {
 }
 
 // An empty Parquet file.
-case object EmptyParquetFile extends ParquetFile {
+private case object EmptyParquetFile extends ParquetFile {
   override def ++(aParquetFile: ParquetFile): ParquetFile = {
     aParquetFile match {
       case EmptyParquetFile => this
@@ -55,10 +60,16 @@ case object EmptyParquetFile extends ParquetFile {
 }
 
 object ParquetFile {
-  // smart (?) constructors
+  // smart constructors
   def apply(): ParquetFile = EmptyParquetFile
-  def apply(fileNames: String*) = ParquetFileImplicitMetadata(fileNames: _*)
-  def apply(metadataFileName: String, fileNames: String*) = ParquetFileExplicitMetadata(metadataFileName = metadataFileName, fileNames: _*)
+  def apply[repr[String] <: ctx[String]](wrappedFileNames: repr[String]*)(implicit p: ParquetMetadataSemantics[repr]): ParquetFile = {
+    val fileNames = wrappedFileNames.map(_.value)
+    wrappedFileNames.find(p.isMetadataFileName(_)).map {
+      metadataFileNameInCtx =>
+        val s = metadataFileNameInCtx.value
+        ParquetFileExplicitMetadata(metadataFileName = s, fileNames.filter(_ != s): _*)
+    }.getOrElse(ParquetFileImplicitMetadata(fileNames: _*))
+  }
 
   // utilities
   def merge(parquetFiles: ParquetFile*): ParquetFile = {
@@ -83,26 +94,10 @@ object ParquetFile {
    *       (*) a bunch of files, with names part-r-* (example: part-r-0000, part-r-0001, etc).
    */
   def loadFromHDFSFolder(folderName: String): ParquetFile = {
-    loadFromListOfFiles(allParquetFiles = HDFS.listOfFilesInFolder(folderName, recursive = false).filter(_ != "_SUCCESS"))
-  }
+    import util.parquet.Representations._
 
-  /**
-   * Creates a ParquetFile structure from a list of files
-   *
-   * @param allParquetFiles
-   * @return
-   * @note scan files in folder to see if it can find a _metadata; if it does, it grabs that as the metadata.
-   */
-  def loadFromListOfFiles(allParquetFiles: Set[String]): ParquetFile = {
-    val metadataFileNameOpt = allParquetFiles.find(_.endsWith("_metadata"))
-    if (metadataFileNameOpt.isDefined) {
-      ParquetFileExplicitMetadata(metadataFileNameOpt.get, allParquetFiles.filter(_ != metadataFileNameOpt.get) toSeq: _*)
-    } else {
-      allParquetFiles.size match {
-        case 0 => EmptyParquetFile
-        case _ => ParquetFileImplicitMetadata(allParquetFiles toSeq: _*)
-      }
-    }
+    val wrappedFilesInFolder = HDFS.listOfFilesInFolder(folderName, recursive = false).filter(_ != "_SUCCESS").map(Spark(_)).toSeq
+    apply(wrappedFileNames = wrappedFilesInFolder: _*)
   }
 
   /**
