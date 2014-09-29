@@ -4,8 +4,7 @@ import org.apache.hadoop.fs.Path
 import Util._
 import util.parquet.Representations.Spark
 import util.parquet.{ ctx, ParquetMetadataSemantics }
-import scala.language.higherKinds // cf: http://stackoverflow.com/questions/6246719/what-is-a-higher-kinded-type-in-scala
-import scala.language.postfixOps // to be able to do stuff like "Set(1,2,3) toSeq"
+
 /**
  * Definition of the differents ways a Parquet file can be represented and kept.
  *

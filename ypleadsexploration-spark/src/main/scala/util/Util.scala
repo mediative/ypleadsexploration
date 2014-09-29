@@ -7,7 +7,6 @@ import org.apache.spark.sql.SQLContext
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
 import org.joda.time.DateTime
-import scala.language.reflectiveCalls
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
