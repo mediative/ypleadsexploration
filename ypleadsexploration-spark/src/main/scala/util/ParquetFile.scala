@@ -105,6 +105,16 @@ object ParquetFile {
    * @param parquetFile
    * @param hdfsFolderName
    * @return
+   * @note The Rollback functionality has to be implemented here
+   *       This has to be defined in a generic interface in terms of primitives, then the recovery strategy
+   *       is defined based on function application and composition of those primitives.
+   *       The specifics for 'HDFS' domain would then be contained in an object which defined semantics for
+   *       those primitives for the HDFS domain.
+   *       Doing it like this ensures that if we want to use the same recovery strategy in another setting,
+   *       we only need to define the primitive semantics. not only that this also allows to come up with alternative
+   *       recover strategies (for different tradeoffs)
+   *
+   *       Now what primitives we need for generic recovery is something which needs a little thought.
    */
   def saveToHDFSFolder(parquetFile: ParquetFile, hdfsFolderName: String): Boolean = {
     def moveFileNames(fileNames: Seq[String]): Boolean = {

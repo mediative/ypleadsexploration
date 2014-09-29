@@ -71,6 +71,9 @@ object Util extends StrictLogging {
      * @param folderName
      * @param recursive true if internal folders have to be scanned too
      * @return a Set of Strings
+     * @note The directory that we are traversing here is actually a tree - so we should reuse
+     *       the set of traversal strategies that could be applied here.
+     *       For now we mark this with a TODO
      */
     def ls(folderName: String, recursive: Boolean): Set[String] = {
       try {
