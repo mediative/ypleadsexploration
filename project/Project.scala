@@ -3,6 +3,7 @@ import Keys._
 import com.typesafe.sbt.SbtStartScript
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
+import ScalacSettings._
 import SparkSettings._
 import LogSettings._
 
@@ -48,7 +49,7 @@ object YPLeadsExplorationBuild extends Build {
       .setPreference(AlignParameters, true)
   }
 
-  val defaultSettings = Defaults.defaultSettings ++ Defaults.itSettings ++ scalariformSettings ++ logSettings ++ Seq(
+  val defaultSettings = Defaults.defaultSettings ++ Defaults.itSettings ++ scalariformSettings ++ scalacSettings ++ logSettings ++ Seq(
     libraryDependencies ++= commonDeps,
     resolvers ++= commonResolvers,
     retrieveManaged := true,

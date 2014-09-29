@@ -7,7 +7,6 @@ import org.apache.spark.sql.SQLContext
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
 import org.joda.time.DateTime
-import scala.language.reflectiveCalls
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
@@ -57,6 +56,7 @@ object Util extends StrictLogging {
   }
 
   object HDFS extends Serializable {
+    import scala.language.postfixOps
 
     /**
      * Gets a "local" filesystem. Meaning that it accesses the files in a local
@@ -66,14 +66,83 @@ object Util extends StrictLogging {
       FileSystem.get(new Configuration())
     }
 
-    def fileExists(fileName: String): Boolean = {
-      val noExceptionCheck = manageOnException[Path, Boolean](getFileSystem.exists(_), e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
-      noExceptionCheck(new Path(fileName)).getOrElse(false)
+    /**
+     * Computes a set of full file names contained in a folder.
+     * @param folderName
+     * @param recursive true if internal folders have to be scanned too
+     * @return a Set of Strings
+     * @note The directory that we are traversing here is actually a tree - so we should reuse
+     *       the set of traversal strategies that could be applied here.
+     *       For now we mark this with a TODO
+     */
+    def ls(folderName: String, recursive: Boolean): Set[String] = {
+      try {
+        val p = new Path(folderName)
+        if (!getFileSystem.getFileStatus(p).isDir) {
+          logger.error(s"${folderName} is *not* a folder")
+          Set.empty
+        } else {
+          getFileSystem.listStatus(new Path(folderName)).map { status =>
+            if (status.isDir) {
+              if (recursive) ls(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}", recursive)
+              else List.empty
+            } else {
+              List(s"${folderName}${Path.SEPARATOR}${status.getPath.getName}")
+            }
+          }.flatten toSet
+        }
+      } catch {
+        case e: Exception => {
+          logger.error(s"Check of file ${folderName}: ${e.getMessage}")
+          Set.empty
+        }
+      }
     }
 
-    def deleteFile(fileName: String): Boolean = {
-      val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
-      noExceptionDelete(new Path(fileName)).isDefined
+    /**
+     * Checks if file exists AND if it meets the criteria of being a folder or not.
+     * @param fileOrDirectoryName Name of fiel or directory
+     * @param asAFolder If true, checks that it is a folder.
+     * @return true, if file or dir exists. false otherwise.
+     *
+     */
+    private[util] def fileExists(fileOrDirectoryName: String, asAFolder: Boolean): Boolean = {
+      val fs = getFileSystem
+      val noExceptionCheck = manageOnException[Path, Boolean](fs.exists(_), e => logger.error(s"Check of file ${fileOrDirectoryName}: ${e.getMessage}")) _
+      val p = new Path(fileOrDirectoryName)
+      noExceptionCheck(p).getOrElse(false) && (!asAFolder || fs.getFileStatus(p).isDir)
+    }
+
+    def directoryExists(fileName: String): Boolean = {
+      fileExists(fileName, asAFolder = true)
+    }
+
+    def fileExists(fileName: String): Boolean = {
+      fileExists(fileName, asAFolder = false)
+    }
+
+    def mv(fileNameSrc: String, fileNameDst: String): Boolean = {
+      try {
+        getFileSystem.rename(new Path(fileNameSrc), new Path(fileNameDst))
+      } catch {
+        case e: Exception => {
+          logger.error(s"Move ${fileNameSrc} => ${fileNameDst}: ${e.getMessage}")
+          false
+        }
+      }
+    }
+
+    /**
+     * Deletes a file on HDFS.
+     * @param fileName The name of the file to be deleted.
+     * @return true if the file no longer exists after this invocation. false otherwise.
+     */
+    def rm(fileName: String): Boolean = {
+      if (fileExists(fileName) || directoryExists(fileName)) {
+        val noExceptionDelete = manageOnException[Path, Unit](getFileSystem.delete(_, false) /* false == *not* recursive */ , e => logger.error(s"Check of file ${fileName}: ${e.getMessage}")) _
+        noExceptionDelete(new Path(fileName)).isDefined
+      }
+      !fileExists(fileName) && !directoryExists(fileName)
     }
 
   }
