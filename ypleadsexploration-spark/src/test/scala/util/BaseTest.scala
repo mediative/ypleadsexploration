@@ -37,6 +37,22 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     }
   }
 
+  val helloAndEmpty = "hello,,,,"
+  s"String splitting of '${helloAndEmpty}'" should " have 5 elements when split with ','" in {
+    assert(String.completeSplit(helloAndEmpty, del = ",").length == 5)
+  }
+
+  it should " have 4 empty elements at the end when split with ','" in {
+    val a = String.completeSplit(helloAndEmpty, del = ",")
+    val aTail = a.tail
+    assert(aTail.length == 4)
+    assert(aTail.forall(_.isEmpty))
+  }
+
+  it should " have 1 element (ie, NO split) when split with ';'" in {
+    assert(String.completeSplit(helloAndEmpty, del = ";").length == 1)
+  }
+
   "Days mentioned today" should "be 1" in {
     val now = DateTime.now
     assert(Date.getAllDays(fromDate = now, toDate = now).length == 1)
