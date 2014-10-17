@@ -9,7 +9,7 @@ import LogSettings._
 
 object YPLeadsExplorationBuild extends Build {
   val PROJECT_NAME = "ypleadsexploration"
-  val HADOOP_JOBRUNNER = "sss.scalding.JobRunner"
+  val HADOOP_JOBRUNNER = "util.FileNames2RDDs"
 
   var commonResolvers = Seq(
     "Maven.org" at "http://repo1.maven.org/maven2",

@@ -161,5 +161,30 @@ object FileNames2RDDs extends StrictLogging {
     rdd
   }
 
+  /**
+   * Entrypoint for Hadoop to kick off the job.
+   */
+  def main(args: Array[String]) {
+    System.out.println("Starting JobRunner ...")
+    if (args.length == 0) {
+      logger.error("No class file provided")
+    } else {
+      val fileName = args(0)
+      val sc = new SparkContext()
+      val rdd = fileName2RDD(fileName, sc)
+      try {
+        rdd.first()
+        logger.info(s"============> File ${fileName} ALL GOOD!!!!")
+      } catch {
+        case e: Exception => {
+          logger.error("RDD empty")
+        }
+        case e: Throwable => {
+          logger.error(s"${e.getMessage}")
+        }
+      }
+    }
+  }
+
 }
 // FileNames2RDDs.myTest("/source/ram/deduped-2013-07-23.csv", sc)
