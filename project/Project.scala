@@ -8,7 +8,6 @@ import SparkSettings._
 import LogSettings._
 import sbtassembly.Plugin._
 import AssemblyKeys._
-import sbtavro.SbtAvro._
 
 
 object YPLeadsExplorationBuild extends Build {
@@ -58,19 +57,15 @@ object YPLeadsExplorationBuild extends Build {
     resolvers ++= commonResolvers,
     retrieveManaged := true,
     publishMavenStyle := true,
-    organization := "sss",
+    organization := "YPG",
     version := "0.1-SNAPSHOT",
     scalaVersion := "2.10.4",
     ScalariformKeys.preferences := configureScalariform(FormattingPreferences())
   )
 
-  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ avroSettings ++ sparkSettings ++ Seq(
+  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ sparkSettings ++ Seq(
     resolvers ++= hadoopResolvers,
     libraryDependencies ++= hadoopDeps,
-
-    version in avroConfig := "1.7.5", // remove this if you want cdh5 avro to be
-                                      // pulled in
-    stringType in avroConfig := "String",
 
     // Slightly cleaner jar name
     jarName in assembly := { name.value + "-" + version.value + ".jar" },
