@@ -1,4 +1,4 @@
-package util.parquet
+package spark.util.parquet
 
 import java.io.File
 

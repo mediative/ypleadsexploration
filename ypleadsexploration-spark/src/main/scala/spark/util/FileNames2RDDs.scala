@@ -1,4 +1,4 @@
-package util
+package spark.util
 
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.hadoop.conf.Configuration
@@ -8,7 +8,7 @@ import org.apache.spark.rdd.RDD
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{ NoPosition, Reader }
-import Util._
+import util.Util._
 
 object FileNames2RDDs extends StrictLogging {
 

@@ -1,9 +1,9 @@
-package util
+package spark.util
 
 import org.apache.hadoop.fs.Path
 import Util._
-import util.parquet.Representations.Spark
-import util.parquet.{ ctx, ParquetMetadataSemantics }
+import spark.util.parquet.Representations.Spark
+import spark.util.parquet.{ ctx, ParquetMetadataSemantics }
 
 /**
  * Definition of the differents ways a Parquet file can be represented and kept.
@@ -93,7 +93,7 @@ object ParquetFile {
    *       (*) a bunch of files, with names part-r-* (example: part-r-0000, part-r-0001, etc).
    */
   def loadFromHDFSFolder(folderName: String): ParquetFile = {
-    import util.parquet.Representations._
+    import spark.util.parquet.Representations._
 
     val wrappedFilesInFolder = HDFS.ls(folderName, recursive = false).filter(_ != "_SUCCESS").map(Spark(_)).toSeq
     apply(wrappedFileNames = wrappedFilesInFolder: _*)

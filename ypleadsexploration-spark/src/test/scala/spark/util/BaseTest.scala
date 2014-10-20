@@ -1,4 +1,4 @@
-package util
+package spark.util
 
 import java.io.PrintWriter
 
@@ -7,6 +7,7 @@ import org.apache.hadoop.fs._
 import org.joda.time.DateTime
 import org.scalatest.{ BeforeAndAfter, FlatSpec }
 import util.Util._
+import spark.util.Util._
 
 class BaseTest extends FlatSpec with BeforeAndAfter {
 
