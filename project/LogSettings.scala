@@ -17,6 +17,8 @@ object LogSettings {
     // Tree log dependencies: (https://github.com/lancewalton/treelog)
     , "com.casualmiracles" %% "treelog" % "1.2.2" // NB: 1.2.3, as recommended on the github page, fails.
     , "org.scalaz" %% "scalaz-core" % "7.0.6"
+    // TODO: this following line SHOULDN'T BE NEEDED, but without it the logging does not work. Why??????
+  ,"org.apache.spark" % "spark-assembly_2.10" % "1.0.0-cdh5.1.0" % "provided" // spark-assembly
   )
 
   val logSettings = Seq(
