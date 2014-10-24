@@ -15,6 +15,24 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
 
   }
 
+  val sleepTimeInSecs = 1
+  s"A call that sleeps for ${sleepTimeInSecs} second(s)" should s"take about ${sleepTimeInSecs}*10^9 ns., at better than 0.1% accuracy" in {
+    val (t, _) = time({ Thread.sleep(sleepTimeInSecs * 1000) })
+    val sleepTimeInNanoSecs = sleepTimeInSecs * 1E9
+    val accuracy = ((math.abs(t - sleepTimeInNanoSecs) * 100) / sleepTimeInNanoSecs)
+    withClue(s"Accuracy = ${accuracy} %") { assert(accuracy < 0.1) }
+  }
+
+  val pizzaWords = Set("PIZZA")
+  val dominosPizza = "Dominos Pizza"
+  s"Filtering occurrences of ${pizzaWords.mkString(start = "{", sep = ",", end = "}")} from '${dominosPizza}'" should "yield 'Dominos' when match is case-insensitive" in {
+    assert(String.filterOccurrencesFrom(wordsToFilter = pizzaWords, aString = dominosPizza, caseSensitive = false) == "Dominos")
+  }
+
+  it should "yield 'Dominos Pizza' when match is case-sensitive" in {
+    assert(String.filterOccurrencesFrom(wordsToFilter = pizzaWords, aString = dominosPizza, caseSensitive = true) == dominosPizza)
+  }
+
   "Days mentioned today" should "be 1" in {
     val now = DateTime.now
     assert(Date.getAllDays(fromDate = now, toDate = now).length == 1)
