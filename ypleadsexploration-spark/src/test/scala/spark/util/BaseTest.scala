@@ -2,6 +2,7 @@ package spark.util
 
 import java.io.PrintWriter
 
+import com.rockymadden.stringmetric.similarity.LevenshteinMetric
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
 import org.joda.time.DateTime
@@ -161,14 +162,15 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     withClue(s"NOT PROPERLY CLEANED AFTER (${dstFileName})") { assert(!HDFS.fileExists(dstFileName)) }
   }
 
+  // NB: my intention here is not to unit-test the LevenshteinMetric (since I am using somebody else's code)
+  // but rather to check if it still complies with my needs
   "Levenshtein distance on two identical strings" should "be 0" in {
-    val s = "luis"
-    assert(Levenshtein.distance(s, s) == 0)
-  }
-
-  it should "still be zero with 2 other strings" in {
-    val s = "luis"
-    assert(Levenshtein.distance(s, s) == 0)
+    List("luis", "whatever", "satisfaction", "!2747!@#*") foreach { s =>
+      LevenshteinMetric.compare(s, s) match {
+        case None => withClue(s"Comparison of ==> ${s} <== with itself returned None") { assert(false) }
+        case Some(dist) => assert(dist == 0)
+      }
+    }
   }
 
   "Transformation of int to string" should "work with months and days" in {

@@ -30,6 +30,10 @@ object YPLeadsExplorationBuild extends Build {
   var commonDeps = Seq(
     // date-time classes:
     "com.github.nscala-time" %% "nscala-time" % "1.2.0", // https://github.com/nscala-time/nscala-time
+    // string metrics:
+    // http://mvnrepository.com/artifact/com.rockymadden.stringmetric/stringmetric-core_2.10/0.27.3
+    // https://rockymadden.com/stringmetric/
+    "com.rockymadden.stringmetric" %% "stringmetric-core" % "0.27.3",
     "org.scalaz" %% "scalaz-core" % "7.0.6",
     "com.chuusai" % "shapeless" % "2.0.0" cross CrossVersion.full,
     "org.scalatest" %% "scalatest" % "2.1.6" % "test,it",

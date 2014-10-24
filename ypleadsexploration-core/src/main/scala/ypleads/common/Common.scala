@@ -1,7 +1,6 @@
 package ypleads.common
 
-import util.{ Util => Util }
-import Util.Levenshtein
+import com.rockymadden.stringmetric.similarity.LevenshteinMetric
 
 object Common extends Serializable {
 
@@ -33,7 +32,7 @@ object Common extends Serializable {
       val tfToMatch = toMatch.replace("-", "").replace(" ", "").replace("'", "").toUpperCase
       (tfToMatch.indexOf(tfTarget) != -1) || // searched target appears somewhere in the query
         ((tfTarget.length >= 10) && (tfToMatch.indexOf(tfTarget.substring(0, tfTarget.length / 2)) != -1)) || // searched target is long and at least half of it appears in the query (ex: target = "domino's pizza", query = "dominos")
-        Levenshtein.distance(tfTarget, tfToMatch) <= (tfTarget.length / 3) // edit distance
+        LevenshteinMetric.compare(tfTarget, tfToMatch).getOrElse(Int.MaxValue) <= (tfTarget.length / 3) // edit distance
     }
 
   }
