@@ -17,8 +17,6 @@ object Common extends Serializable {
   }
 
   object functions extends Serializable {
-    // Gets rid of double-quotes around Strings.
-    def cleanString(aString: String) = aString.replace("\"", "").trim
 
     def isCloseEnough(target: String, toMatch: String): Boolean = {
       // first, get rid of .com OR .ca at the end:

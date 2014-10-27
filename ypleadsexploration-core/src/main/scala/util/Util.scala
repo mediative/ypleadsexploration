@@ -26,6 +26,10 @@ object Util extends StrictLogging {
         newS.split(del). // do the actual splitting, and...
           map(x => if (x == EMPTY_SYMBOL) "" else x).toList // ...then clean up result
       }
+
+    // Gets rid of double-quotes around Strings.
+    def clean(aString: String) = aString.replace("\"", "").trim
+
   }
 
   object Date extends Serializable {

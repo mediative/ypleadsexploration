@@ -4,20 +4,7 @@ import org.scalatest.FlatSpec
 import ypleads.common.Common.functions
 import functions._
 
-class SetSpec extends FlatSpec {
-
-  "functions.cleanString" should "do nothing when string is already clean" in {
-    val aCleanString = "luisOrSomethingElse I can't think about"
-    assert(cleanString(aCleanString) == aCleanString)
-  }
-
-  it should "clean 'dirty' strings" in {
-    val aDirtyString = "luis\"lala\"OrSomethingElse I can't think about"
-    val aCleanString = "luislalaOrSomethingElse I can't think about"
-    withClue(s"cleanString(${aDirtyString}) = ${cleanString(aDirtyString)}") {
-      assert(cleanString(aDirtyString) == aCleanString)
-    }
-  }
+class CommonTest extends FlatSpec {
 
   "'Dominos'" should "be close enough to 'Dominos P'" in {
     assert(isCloseEnough("Dominos", "Dominos P"))
