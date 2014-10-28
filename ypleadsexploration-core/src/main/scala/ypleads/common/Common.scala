@@ -1,18 +1,25 @@
 package ypleads.common
 
 import com.rockymadden.stringmetric.similarity.LevenshteinMetric
+import util.wrappers.String.{ Clean => CleanString }
 
 object Common extends Serializable {
 
   object structures extends Serializable {
     // TODO: I would like the following String types to be CleanString, but saveAsParquetFile blows up on that.
-    // See https://gist.github.com/ldacosta/045703aabc4aa5844c64 for a solution
-    // Seems like it is making a transformation Scala types => "Hadoop types", and it needs predefined types to do that.
+    // Look here for a reason why: https://gist.github.com/ldacosta/1cbd0f1387e7c92fea42
+    // TODO: actually put here *all* fields from DB, with *same* names
     case class RAMRow(accountKey: Long, keywords: String, date: String, headingId: Long, directoryId: Long, refererId: Long,
-                      impressionWeight: Double, clickWeight: Double, isMobile: Boolean)
+                      impressionWeight: Double, clickWeight: Double, isMobile: Boolean) {
+      def withCleanString() = this.copy(keywords = CleanString(keywords).toString, date = CleanString(date).toString)
+    }
 
     // TODO: Strings here should be CleanString
-    case class anAccount(accountKey: Long, accountId: Long, accountName: String)
+    // Look here for a reason why it is not: https://gist.github.com/ldacosta/1cbd0f1387e7c92fea42
+    // TODO: actually put here *all* fields from DB, with *same* names
+    case class AnAccount(accountKey: Long, accountId: Long, accountName: String) {
+      def withCleanString() = this.copy(accountName = CleanString(accountName).toString)
+    }
 
   }
 
