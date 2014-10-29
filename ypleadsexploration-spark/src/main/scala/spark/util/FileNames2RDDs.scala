@@ -63,7 +63,7 @@ object FileNames2RDDs extends StrictLogging {
           val p = new Path(fileName)
           if (fs.exists(p) && !fs.getFileStatus(p).isDir) {
             val therdd = sc.textFile(fileName).map { line =>
-              String.completeSplit(line, DEL1)
+              line.split(DEL1, -1).toList
             }
             if (therdd.first().length == 1) {
               // nothing was split - I will assume that the delimiter is *not* right:

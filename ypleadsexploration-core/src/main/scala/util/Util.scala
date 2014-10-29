@@ -13,19 +13,6 @@ object Util extends StrictLogging {
   // Then I would do things like http://myadventuresincoding.wordpress.com/2011/04/19/scala-extending-a-built-in-class-with-implicit-conversions/
   // I don't do it NOW because of potential serialization problems with Spark. So TODO.
   object String {
-    /**
-     * Splits a string, using a specified delimiter.
-     *
-     * @note Makes some half-sophisticated things, like:
-     *       input = "hi,,,," => List("hi","","","","")
-     */
-    def completeSplit(s: String, del: String): List[String] =
-      {
-        val EMPTY_SYMBOL = "yy_ee"
-        val newS = { s.replace(s"${del}${del}", s"${del}${EMPTY_SYMBOL}${del}") } ++ (if (s.endsWith(del)) s"${EMPTY_SYMBOL}${del}" else "")
-        newS.split(del). // do the actual splitting, and...
-          map(x => if (x == EMPTY_SYMBOL) "" else x).toList // ...then clean up result
-      }
 
     // Gets rid of double-quotes around Strings.
     def clean(aString: String) = aString.replace("\"", "").trim
