@@ -1,6 +1,7 @@
 package util.wrappers
 
 import util.wrappers.Base.{ Wrapper => BaseWrapper }
+import util.Util.{ String => StringUtils }
 
 object String {
 
@@ -10,13 +11,16 @@ object String {
   }
 
   /**
-   * A 'clean' String is a String with no begin or end double-quotes, and trimmed.
+   * A 'clean' String is a String from where we got rid of unwanted characters.
    * @note The motivation from this stems from the need to clean the Strings saved on CSVs,
-   *       that are sometimes (often?) double-quoted that way.
+   *       that are sometimes (often?) double-quoted
+   *       (eg, a line can be ==> "a string", "another" <== instead of ==> a string, another)
    */
   trait Clean extends Wrapper
   object Clean extends Serializable {
-    def apply(s: String): Clean = { CleanStringImpl(s.replace("\"", "").trim) }
+    def apply(s: String, symbols: Set[String] = Set("\"")): Clean = {
+      CleanStringImpl(StringUtils.multipleReplace(s, aSet = symbols.map((_, ""))))
+    }
     private[this] case class CleanStringImpl(val value: String) extends Clean
   }
 
