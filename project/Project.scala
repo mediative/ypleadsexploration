@@ -6,6 +6,9 @@ import scalariform.formatter.preferences._
 import ScalacSettings._
 import SparkSettings._
 import LogSettings._
+import sbtassembly.Plugin._
+import AssemblyKeys._
+
 
 object YPLeadsExplorationBuild extends Build {
   val PROJECT_NAME = "ypleadsexploration"
@@ -27,6 +30,10 @@ object YPLeadsExplorationBuild extends Build {
   var commonDeps = Seq(
     // date-time classes:
     "com.github.nscala-time" %% "nscala-time" % "1.2.0", // https://github.com/nscala-time/nscala-time
+    // string metrics:
+    // http://mvnrepository.com/artifact/com.rockymadden.stringmetric/stringmetric-core_2.10/0.27.3
+    // https://rockymadden.com/stringmetric/
+    "com.rockymadden.stringmetric" %% "stringmetric-core" % "0.27.3",
     "org.scalaz" %% "scalaz-core" % "7.0.6",
     "com.chuusai" % "shapeless" % "2.0.0" cross CrossVersion.full,
     "org.scalatest" %% "scalatest" % "2.1.6" % "test,it",
@@ -54,23 +61,15 @@ object YPLeadsExplorationBuild extends Build {
     resolvers ++= commonResolvers,
     retrieveManaged := true,
     publishMavenStyle := true,
-    organization := "sss",
+    organization := "YPG",
     version := "0.1-SNAPSHOT",
     scalaVersion := "2.10.4",
     ScalariformKeys.preferences := configureScalariform(FormattingPreferences())
   )
 
-  import sbtassembly.Plugin._
-  import AssemblyKeys._
-  import sbtavro.SbtAvro._
-
-  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ avroSettings ++ sparkSettings ++ Seq(
+  lazy val hadoopSettings = defaultSettings ++ assemblySettings ++ sparkSettings ++ Seq(
     resolvers ++= hadoopResolvers,
     libraryDependencies ++= hadoopDeps,
-
-    version in avroConfig := "1.7.5", // remove this if you want cdh5 avro to be
-                                      // pulled in
-    stringType in avroConfig := "String",
 
     // Slightly cleaner jar name
     jarName in assembly := { name.value + "-" + version.value + ".jar" },
@@ -111,21 +110,14 @@ object YPLeadsExplorationBuild extends Build {
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
-    .aggregate(core, scalding, spark)
+    .aggregate(core, spark)
 
   lazy val core = Project(PROJECT_NAME+"-core", file(PROJECT_NAME+"-core"))
     .configs(IntegrationTest)
+    .settings(defaultSettings: _*)
     .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
     .settings(parallelExecution in IntegrationTest := false)
     .settings(SbtStartScript.startScriptForClassesSettings: _*)
-
-  lazy val scalding = Project(s"${PROJECT_NAME}-scalding", file(s"${PROJECT_NAME}-scalding"))
-    .configs(IntegrationTest)
-    .settings(hadoopSettings: _*)
-    .settings(testOptions in IntegrationTest := Seq(Tests.Filter(s => s.contains("Test"))))
-    .settings(parallelExecution in IntegrationTest := false)
-    .settings(SbtStartScript.startScriptForClassesSettings: _*)
-    .dependsOn(core)
 
   lazy val spark = Project(s"${PROJECT_NAME}-spark", file(s"${PROJECT_NAME}-spark"))
     .configs(IntegrationTest)

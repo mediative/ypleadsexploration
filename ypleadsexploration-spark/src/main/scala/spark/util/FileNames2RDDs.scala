@@ -1,4 +1,4 @@
-package util
+package spark.util
 
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.hadoop.conf.Configuration
@@ -8,7 +8,7 @@ import org.apache.spark.rdd.RDD
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{ NoPosition, Reader }
-import Util._
+import util.Util._
 
 object FileNames2RDDs extends StrictLogging {
 
@@ -63,7 +63,7 @@ object FileNames2RDDs extends StrictLogging {
           val p = new Path(fileName)
           if (fs.exists(p) && !fs.getFileStatus(p).isDir) {
             val therdd = sc.textFile(fileName).map { line =>
-              String.completeSplit(line, DEL1)
+              line.split(DEL1, -1).toList
             }
             if (therdd.first().length == 1) {
               // nothing was split - I will assume that the delimiter is *not* right:
