@@ -3,6 +3,7 @@ package util
 import java.io.{ PrintWriter, FileWriter }
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import util.wrappers.String.{ Clean => CleanString }
 
 /**
  * Several Utilities.
@@ -14,8 +15,7 @@ object Util extends StrictLogging {
   // I don't do it NOW because of potential serialization problems with Spark. So TODO.
   object String {
 
-    // Gets rid of double-quotes around Strings.
-    def clean(aString: String) = aString.replace("\"", "").trim
+    def clean(aString: String): CleanString = CleanString(aString)
 
   }
 
