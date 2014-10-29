@@ -16,9 +16,13 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
   }
 
   val sleepTimeInSecs = 1
-  s"A call that sleeps for ${sleepTimeInSecs} second(s)" should s"take about ${sleepTimeInSecs}*10^9 ns., at better than 0.1% accuracy" in {
-    val (t, _) = time({ Thread.sleep(sleepTimeInSecs * 1000) })
-    val sleepTimeInNanoSecs = sleepTimeInSecs * 1E9
+  s"A call that sleeps for ${sleepTimeInSecs} second(s)" should s", on average, take about ${sleepTimeInSecs}*10^9 ns., at better than 0.1% accuracy" in {
+    val numRuns = 10
+    val t =
+      (1 to numRuns).foldLeft(0L) { (totalTime, _) =>
+        totalTime + time({ Thread.sleep(sleepTimeInSecs * 1000) })._1
+      }
+    val sleepTimeInNanoSecs = sleepTimeInSecs * numRuns * 1E9
     val accuracy = ((math.abs(t - sleepTimeInNanoSecs) * 100) / sleepTimeInNanoSecs)
     withClue(s"Accuracy = ${accuracy} %") { assert(accuracy < 0.1) }
   }
