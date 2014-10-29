@@ -23,6 +23,15 @@ class BaseTest extends FlatSpec with BeforeAndAfter {
     withClue(s"Accuracy = ${accuracy} %") { assert(accuracy < 0.1) }
   }
 
+  val aString = "Luis is going, maybe, to the store"
+  s"Multiple replacement on string = [${aString}]" should "substitute ',' with Comma when instructed" in {
+    assert(String.multipleReplace(s = aString, aSet = Set((",", "Comma"))) == aString.replace(",", "Comma"))
+  }
+
+  it should "substitute ',' with Comma *and* 'Luis' for 'Marianne' when instructed" in {
+    assert(String.multipleReplace(s = aString, aSet = Set((",", "Comma"), ("Luis", "Marianne"))) == aString.replace(",", "Comma").replace("Luis", "Marianne"))
+  }
+
   val pizzaWords = Set("PIZZA")
   val dominosPizza = "Dominos Pizza"
   s"Filtering occurrences of ${pizzaWords.mkString(start = "{", sep = ",", end = "}")} from '${dominosPizza}'" should "yield 'Dominos' when match is case-insensitive" in {
