@@ -71,7 +71,7 @@ object Util extends StrictLogging {
      */
     trait Matcher {
       val stopWords: Set[String]
-      def isCloseEnough(aWord: String, anotherWord: String, verbose: Boolean = false): Boolean
+      def isCloseEnough(aWord: String, anotherWord: String): Boolean
     }
 
   }

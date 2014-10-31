@@ -11,7 +11,7 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
 
   def filterStopWordsFrom(aString: String): String = String.filterOccurrencesFrom(stopWords, aString, caseSensitive = false)
 
-  def isCloseEnough(target: String, toMatch: String, verbose: Boolean = false): Boolean = {
+  def isCloseEnough(target: String, toMatch: String): Boolean = {
     // first, get rid of .com OR .ca at the end:
     val targetCleanedUp = {
       if (target.endsWith(".ca") || target.endsWith(".com"))
@@ -22,17 +22,13 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
     val ucTarget = targetCleanedUp.replace("-", " ").toUpperCase
     val ucToMatch = toMatch.toUpperCase
 
-    if (verbose) {
-      logger.info(s"target: ${target}, cleanedTarget = ${ucTarget}, toMatch = ${toMatch}, cleanedToMatch = ${ucToMatch}")
-    }
+    logger.debug(s"target: ${target}, cleanedTarget = ${ucTarget}, toMatch = ${toMatch}, cleanedToMatch = ${ucToMatch}")
     if (ucTarget == ucToMatch) {
       true
     } else {
       val tfTarget = filterStopWordsFrom(ucTarget)
       val tfToMatch = filterStopWordsFrom(ucToMatch)
-      if (verbose) {
-        logger.info(s"AFTER STOP WORDS CLEANING ==> target = ${tfTarget}, toMatch = ${tfToMatch}")
-      }
+      logger.debug(s"AFTER STOP WORDS CLEANING ==> target = ${tfTarget}, toMatch = ${tfToMatch}")
       if (tfTarget.isEmpty || tfToMatch.isEmpty) {
         false
       } else {
@@ -40,9 +36,7 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
         val levDistance = LevenshteinMetric.compare(tfTarget, tfToMatch).getOrElse(Int.MaxValue)
         val levThreshold = math.ceil((tfTarget.length: Double) / 3)
         val levMatch = levDistance <= levThreshold // edit distance
-        if (verbose) {
-          logger.info(s"bTargetInToMatch = ${bTargetInToMatch}, levMatch = ${levMatch} (lev distance = ${levDistance}, threshold = ${levThreshold}})")
-        }
+        logger.debug(s"bTargetInToMatch = ${bTargetInToMatch}, levMatch = ${levMatch} (lev distance = ${levDistance}, threshold = ${levThreshold}})")
         bTargetInToMatch || levMatch
       }
     }
