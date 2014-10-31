@@ -1,11 +1,12 @@
 package ypleads
 
 import com.rockymadden.stringmetric.similarity.LevenshteinMetric
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import util.Util.String.{ Matcher => StringMatcher }
 import util.Util._
 import scala.util.control.Exception._
 
-class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher {
+class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher with StrictLogging {
   import Query2BusinessMatcher._
 
   def filterStopWordsFrom(aString: String): String = String.filterOccurrencesFrom(stopWords, aString, caseSensitive = false)
@@ -20,15 +21,18 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher {
     }
     val ucTarget = targetCleanedUp.replace("-", " ").toUpperCase
     val ucToMatch = toMatch.toUpperCase
-    if (verbose)
-      println(s"target: ${target}, cleanedTarget = ${ucTarget}, toMatch = ${toMatch}, cleanedToMatch = ${ucToMatch}")
+
+    if (verbose) {
+      logger.info(s"target: ${target}, cleanedTarget = ${ucTarget}, toMatch = ${toMatch}, cleanedToMatch = ${ucToMatch}")
+    }
     if (ucTarget == ucToMatch) {
       true
     } else {
       val tfTarget = filterStopWordsFrom(ucTarget)
       val tfToMatch = filterStopWordsFrom(ucToMatch)
-      if (verbose)
-        println(s"AFTER STOP WORDS CLEANING ==> target = ${tfTarget}, toMatch = ${tfToMatch}")
+      if (verbose) {
+        logger.info(s"AFTER STOP WORDS CLEANING ==> target = ${tfTarget}, toMatch = ${tfToMatch}")
+      }
       if (tfTarget.isEmpty || tfToMatch.isEmpty) {
         false
       } else {
@@ -36,8 +40,9 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher {
         val levDistance = LevenshteinMetric.compare(tfTarget, tfToMatch).getOrElse(Int.MaxValue)
         val levThreshold = math.ceil((tfTarget.length: Double) / 3)
         val levMatch = levDistance <= levThreshold // edit distance
-        if (verbose)
-          println(s"bTargetInToMatch = ${bTargetInToMatch}, levMatch = ${levMatch} (lev distance = ${levDistance}, threshold = ${levThreshold}})")
+        if (verbose) {
+          logger.info(s"bTargetInToMatch = ${bTargetInToMatch}, levMatch = ${levMatch} (lev distance = ${levDistance}, threshold = ${levThreshold}})")
+        }
         bTargetInToMatch || levMatch
       }
     }
