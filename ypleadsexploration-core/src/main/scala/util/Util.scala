@@ -53,11 +53,16 @@ object Util extends StrictLogging {
       // as we may have to transform the original string (dependending on the 'caseSensitive' flag),
       // we use a helper structure
       // (as at the end we *always* return the original word).
+      object OrigTransformed {
+        def apply(s: String) = new OrigTransformed(orig = s, transformed = transformFn(s))
+      }
       case class OrigTransformed(orig: String, transformed: String)
       // let's transform everything based on case-sensitivity or not:
-      val setToFilter = if (caseSensitive) wordsToFilter else wordsToFilter.map(_.toUpperCase)
-      val targetSplit = aString.split(" ").
-        map(w => OrigTransformed(orig = w, transformed = if (caseSensitive) w else w.toUpperCase))
+      def transformFn: String => String = {
+        s => if (caseSensitive) s else s.toUpperCase
+      }
+      val setToFilter = wordsToFilter.map(transformFn(_))
+      val targetSplit = aString.split(" ").map(OrigTransformed(_))
       // and now let's do the job:
       targetSplit.filter { case OrigTransformed(_, t) => !setToFilter.contains(t) }. // keep the ones we want...
         map { case OrigTransformed(o, _) => o }. // grab the original from that...
