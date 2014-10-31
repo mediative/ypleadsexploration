@@ -27,20 +27,6 @@ object Util extends StrictLogging {
   object String {
 
     /**
-     * Replaces set of elements on a String.
-     * @param s The string where symbols will be replaced
-     * @param aSet Set of symbols we want to get replaced, along with the replacing symbols
-     * @return The string with the symbols replaced
-     */
-    def multipleReplace(s: String, aSet: Set[(String, String)]): String = {
-      if (aSet.isEmpty) s.trim
-      else {
-        val (toReplace, replacedWith) = aSet.head
-        multipleReplace(s.replace(toReplace, replacedWith), aSet.tail)
-      }
-    }
-
-    /**
      * Takes a set of string to filter from another one, and does the job.
      * @return The string filtered
      */
