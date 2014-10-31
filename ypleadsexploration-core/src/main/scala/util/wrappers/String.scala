@@ -18,12 +18,20 @@ object String {
    */
   trait Clean extends Wrapper
   object Clean extends Serializable {
-    def apply(s: String, symbols: Set[String] = Set("\"")): Clean = {
-      CleanStringImpl(StringUtils.multipleReplace(s, aSet = symbols.map((_, ""))))
+    def apply(s: String, r: scala.util.matching.Regex): Clean = {
+      CleanStringImpl(s.replaceAll(r.toString(), ""))
+    }
+    def apply(s: String, thisSymbol: Char): Clean = {
+      CleanStringImpl(s.replace(thisSymbol, '\0'))
     }
     private[this] case class CleanStringImpl(val value: String) extends Clean
   }
 
-  implicit def string2Clean(s: String): Clean = Clean(s)
+  trait FromCSV extends Clean
+  object FromCSV extends Serializable {
+    def apply(s: String): Clean = {
+      Clean(s, r = "\"".r)
+    }
+  }
 
 }

@@ -53,7 +53,13 @@ object Query2BusinessMatcher {
    *       and will be sometimes part of a larger term (eg, "Boats & Sails"). Since we will want to separate the 2,
    *       the '&' in the middle is not important and we can get rid of.
    */
-  private def cleanString(aString: String): String = CleanString(aString, symbols = Set("\"", "&")).value
+  private[this] trait CleanHeading extends CleanString
+  private[this] object CleanHeading extends Serializable {
+    def apply(s: String): CleanString = {
+      CleanString(s, r = ("[\"|&]".r))
+    }
+  }
+  private[this] def asCleanHeading(aString: String): String = CleanHeading(aString).value
 
   // TODO: all this thing down here should be subsumed using Parsers Combinators.
   /**
@@ -68,8 +74,8 @@ object Query2BusinessMatcher {
       map(s => s.split("\t")).
       flatMap { a =>
         val Array(heading_id_s, heading_name, _) = a
-        if ((catching(classOf[Exception]) opt cleanString(heading_id_s.trim).toLong).isDefined)
-          Some(cleanString(heading_name))
+        if ((catching(classOf[Exception]) opt asCleanHeading(heading_id_s.trim).toLong).isDefined)
+          Some(asCleanHeading(heading_name))
         else
           None
       } toSet
@@ -91,8 +97,8 @@ object Query2BusinessMatcher {
       map(s => s.split(",")).
       flatMap { a =>
         val Array(synonym, lang, headingCode, _*) = a
-        if ((catching(classOf[Exception]) opt cleanString(headingCode.trim).toLong).isDefined && lang.toUpperCase().equals("EN"))
-          Some(cleanString(synonym))
+        if ((catching(classOf[Exception]) opt asCleanHeading(headingCode.trim).toLong).isDefined && lang.toUpperCase().equals("EN"))
+          Some(asCleanHeading(synonym))
         else
           None
       } toSet

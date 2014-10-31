@@ -3,9 +3,6 @@ package util
 import java.io.{ PrintWriter, FileWriter }
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import util.wrappers.String.{ Clean => CleanString }
-
-import scala.util.control.Exception._
 
 /**
  * Several Utilities.
@@ -28,8 +25,6 @@ object Util extends StrictLogging {
   // Then I would do things like http://myadventuresincoding.wordpress.com/2011/04/19/scala-extending-a-built-in-class-with-implicit-conversions/
   // I don't do it NOW because of potential serialization problems with Spark. So TODO.
   object String {
-
-    def clean(aString: String): CleanString = CleanString(aString)
 
     /**
      * Replaces set of elements on a String.
