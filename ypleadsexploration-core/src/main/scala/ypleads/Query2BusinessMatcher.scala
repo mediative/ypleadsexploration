@@ -4,6 +4,9 @@ import com.rockymadden.stringmetric.similarity.LevenshteinMetric
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import util.Util.String.{ Matcher => StringMatcher }
 import util.Util._
+import util.wrappers.clean.Base.CleanlyWrapped
+import util.wrappers.clean.CleanableOps
+import util.wrappers.clean.CleanableOps.Cleanable
 import scala.util.control.Exception._
 
 class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher with StrictLogging {
@@ -45,7 +48,11 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
 
 object Query2BusinessMatcher {
 
-  import util.wrappers.String.{ Clean => CleanString }
+  import util.wrappers.String.{ Wrapper => StringWrapper }
+
+  case class Heading(raw: String) extends StringWrapper {
+    override val value = raw
+  }
 
   /**
    * Cleans a string, following the specifics needs for this matcher.
@@ -53,13 +60,25 @@ object Query2BusinessMatcher {
    *       and will be sometimes part of a larger term (eg, "Boats & Sails"). Since we will want to separate the 2,
    *       the '&' in the middle is not important and we can get rid of.
    */
-  private[this] trait CleanHeading extends CleanString
-  private[this] object CleanHeading extends Serializable {
-    def apply(s: String): CleanString = {
-      CleanString(s, r = ("[\"|&]".r))
+  object CleanFromHeading {
+    def apply(s: String)(implicit ops: CleanableOps.Cleanable[Heading]): CleanlyWrapped[Heading] = {
+      ops.clean(Heading(s))
+    }
+    def apply(s: Heading)(implicit ops: CleanableOps.Cleanable[Heading]): CleanlyWrapped[Heading] = {
+      ops.clean(s)
     }
   }
-  private[this] def asCleanHeading(aString: String): String = CleanHeading(aString).value
+
+  object Ops {
+    implicit object CleanableFromHeading extends Cleanable[Heading] {
+      def clean(aValue: Heading): CleanlyWrapped[Heading] = {
+        CleanlyWrapped(Heading(aValue.raw.replaceAll(("[\"|&]".r).toString(), "")))
+      }
+    }
+  }
+
+  import Ops._ // bring implicit object into scope
+  private[this] def asCleanHeading(aString: String): String = CleanFromHeading(aString).value.value
 
   // TODO: all this thing down here should be subsumed using Parsers Combinators.
   /**
