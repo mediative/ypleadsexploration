@@ -60,6 +60,34 @@ object Util extends StrictLogging {
       def isCloseEnough(aWord: String, anotherWord: String): Boolean
     }
 
+    // TODO: move these elsewhere
+    trait Repr[T] extends wrappers.Base.Wrapper[T]
+    case class Eval[T](value: T) extends Repr[T]
+
+    trait MetricSym[T, repr[_]] {
+      def metric: repr[T] => repr[T] => repr[Double]
+    }
+    case class Lev(value: String) extends wrappers.Base.Wrapper[String] with Ordered[Lev] {
+      import com.rockymadden.stringmetric.similarity.LevenshteinMetric
+      def compare(that: Lev) = LevenshteinMetric.compare(this.value, that.value).
+        getOrElse(Int.MaxValue)
+    }
+    implicit object MetricSym_Lev_Eval extends MetricSym[Lev, Eval] {
+      def metric = x => y => {
+        Eval((x.value compare y.value).toDouble)
+      }
+    }
+    // HMM: should stopWords be there with isCloseEnough, or should that be
+    // relegated to a different trait?
+    trait WordMatcher[T, repr[_]] {
+      def stopWords: repr[Set[T]]
+      def threshold: repr[Double]
+      def isCloseEnough: repr[T] => repr[T] => repr[Boolean]
+    }
+    // implicit class WordMatcher_Lev_Eval(val stopWords: Eval[Set[Lev]]) extends WordMatcher[Lev, Eval] {
+    //   val th
+    // }
+
   }
 
   object Date extends Serializable {

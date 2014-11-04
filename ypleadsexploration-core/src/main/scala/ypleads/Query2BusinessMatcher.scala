@@ -20,14 +20,15 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
       if (target.endsWith(".ca") || target.endsWith(".com"))
         target.substring(0, target.lastIndexOf('.'))
       else
-        target
+        target // we don't do this for other domains?
     }
     val ucTarget = targetCleanedUp.replace("-", " ").toUpperCase
     val ucToMatch = toMatch.toUpperCase
 
     logger.debug(s"target: ${target}, cleanedTarget = ${ucTarget}, toMatch = ${toMatch}, cleanedToMatch = ${ucToMatch}")
     if (ucTarget == ucToMatch) {
-      true
+      true // direct match is always ok. why aren't we catching this with
+      // levMatch?
     } else {
       val tfTarget = filterStopWordsFrom(ucTarget)
       val tfToMatch = filterStopWordsFrom(ucToMatch)
@@ -149,4 +150,3 @@ object Query2BusinessMatcher {
     new Query2BusinessMatcher(stopWords = loadEnglishStopWords(headingsFileName, synonymsFileName))
   }
 }
-
