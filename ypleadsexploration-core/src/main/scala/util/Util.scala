@@ -3,19 +3,62 @@ package util
 import java.io.{ PrintWriter, FileWriter }
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import util.wrappers.String.{ Clean => CleanString }
 
 /**
  * Several Utilities.
  */
 object Util extends StrictLogging {
 
+  /**
+   * Time profiling of a call
+   * @return The time a call takes, in nanoseconds.
+   * @note Adapted from http://stackoverflow.com/questions/9160001/how-to-profile-methods-in-scala
+   */
+  def time[R](block: => R): (Long, R) = {
+    val t0 = System.nanoTime()
+    val result = block // call-by-name
+    val t1 = System.nanoTime()
+    (t1 - t0, result)
+  }
+
   // TODO: I would like it better to define a StringWrapper, and then an implicit String => StringWrapper
   // Then I would do things like http://myadventuresincoding.wordpress.com/2011/04/19/scala-extending-a-built-in-class-with-implicit-conversions/
   // I don't do it NOW because of potential serialization problems with Spark. So TODO.
   object String {
 
-    def clean(aString: String): CleanString = CleanString(aString)
+    /**
+     * Takes a set of string to filter from another one, and does the job.
+     * @return The string filtered
+     */
+    def filterOccurrencesFrom(wordsToFilter: Set[String], aString: String, caseSensitive: Boolean): String = {
+      // as we may have to transform the original string (dependending on the 'caseSensitive' flag),
+      // we use a helper structure
+      // (as at the end we *always* return the original word).
+      object OrigTransformed {
+        def apply(s: String) = new OrigTransformed(orig = s, transformed = transformFn(s))
+      }
+      case class OrigTransformed(orig: String, transformed: String)
+      // let's transform everything based on case-sensitivity or not:
+      def transformFn: String => String = {
+        s => if (caseSensitive) s else s.toUpperCase
+      }
+      val setToFilter = wordsToFilter.map(transformFn(_))
+      val targetSplit = aString.split(" ").map(OrigTransformed(_))
+      // and now let's do the job:
+      targetSplit.filter { case OrigTransformed(_, t) => !setToFilter.contains(t) }. // keep the ones we want...
+        map(_.orig). // grab the original from that...
+        filter(!_.isEmpty).mkString(" ") // and rebuild a String
+    }
+
+    /**
+     * Specification for a word-matcher.
+     * What we want is a way to determine if two words are 'close enough'. We add the possibility
+     * of having stop-words to do that match.
+     */
+    trait Matcher {
+      val stopWords: Set[String]
+      def isCloseEnough(aWord: String, anotherWord: String): Boolean
+    }
 
   }
 
