@@ -25,7 +25,7 @@ class Query2BusinessMatcherTest extends FlatSpec with BeforeAndAfter {
               (catching(classOf[Exception]) opt Source.fromURL(getClass.getResource(s"/${synonymsFileName}")).bufferedReader()) match {
                 case None => {
                   info(s"Synonyms file ${synonymsFileName} does not exist in resources (or is invalid)")
-                  Set.empty[String]
+                  Set.empty
                 }
                 case Some(synonymLinesBR) => {
                   info(s"Loaded synonyms file ${synonymsFileName} from resources")
@@ -33,7 +33,7 @@ class Query2BusinessMatcherTest extends FlatSpec with BeforeAndAfter {
                 }
               }
             }
-          headings ++ headingsSynonyms
+          Query2BusinessMatcher.getIndividualWordsFrom(headings ++ headingsSynonyms)
         }
       }
     })
@@ -43,6 +43,18 @@ class Query2BusinessMatcherTest extends FlatSpec with BeforeAndAfter {
 
   after {
 
+  }
+
+  "getIndividualWordsFrom" should "be tested" in {
+    /*
+    TODO: test it with all of this:
+  // "advertising agencies & Activities"
+  "advertising agencies &             Activities"
+"advertising agencies & & & & & Activities           "
+"          advertising agencies & & & & & Activities           "
+
+    ==> they should all yield Set(advertising, agencies, Activities, and)
+     */
   }
 
   val pizzaWords = Set("PIZZA")

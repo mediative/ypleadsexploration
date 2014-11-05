@@ -1,13 +1,15 @@
 package ypleads
 
+import _root_.util.wrappers.clean.Base.CleanlyWrapped
+import _root_.util.wrappers.clean.FromCSV.CleanFromCSVString
 import com.rockymadden.stringmetric.similarity.LevenshteinMetric
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import util.Util.String.{ Matcher => StringMatcher }
-import util.Util._
-import util.wrappers.clean.Base.CleanlyWrapped
-import util.wrappers.clean.CleanableOps
-import util.wrappers.clean.CleanableOps.Cleanable
 import scala.util.control.Exception._
+import _root_.util.wrappers.String.{ FromCSV => StringFromCSV }
+import _root_.util.Util.String.{ Matcher => StringMatcher }
+import _root_.util.Util._
+import _root_.util.decomposable.Base._
+import ypleads.util.Heading.CleanHeadingBreakdownable
 
 class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher with StrictLogging {
   import Query2BusinessMatcher._
@@ -48,37 +50,7 @@ class Query2BusinessMatcher(val stopWords: Set[String]) extends StringMatcher wi
 
 object Query2BusinessMatcher {
 
-  import util.wrappers.String.{ Wrapper => StringWrapper }
-
-  case class Heading(raw: String) extends StringWrapper {
-    override val value = raw
-  }
-
-  /**
-   * Cleans a string, following the specifics needs for this matcher.
-   * @note The headings and the synonyms will be read from (CSV) files where they may be surrounderd by double-quotes,
-   *       and will be sometimes part of a larger term (eg, "Boats & Sails"). Since we will want to separate the 2,
-   *       the '&' in the middle is not important and we can get rid of.
-   */
-  object CleanFromHeading {
-    def apply(s: String)(implicit ops: CleanableOps.Cleanable[Heading]): CleanlyWrapped[Heading] = {
-      ops.clean(Heading(s))
-    }
-    def apply(s: Heading)(implicit ops: CleanableOps.Cleanable[Heading]): CleanlyWrapped[Heading] = {
-      ops.clean(s)
-    }
-  }
-
-  object Ops {
-    implicit object CleanableFromHeading extends Cleanable[Heading] {
-      def clean(aValue: Heading): CleanlyWrapped[Heading] = {
-        CleanlyWrapped(Heading(aValue.raw.replaceAll(("[\"|&]".r).toString(), "")))
-      }
-    }
-  }
-
-  import Ops._ // bring implicit object into scope
-  private[this] def asCleanHeading(aString: String): String = CleanFromHeading(aString).value.value
+  import _root_.util.wrappers.clean.FromCSVOps._ // brings implicits into scope
 
   // TODO: all this thing down here should be subsumed using Parsers Combinators.
   /**
@@ -88,19 +60,19 @@ object Query2BusinessMatcher {
    * @param fileLines A bunch of lines of text
    * @return The set of English headings extracted from those lines
    */
-  private[ypleads] def loadEnglishHeadings(fileLines: Set[String]): Set[String] = {
+  private[ypleads] def loadEnglishHeadings(fileLines: Set[String]): Set[CleanlyWrapped[StringFromCSV]] = {
     fileLines.
       map(s => s.split("\t")).
       flatMap { a =>
         val Array(heading_id_s, heading_name, _) = a
-        if ((catching(classOf[Exception]) opt asCleanHeading(heading_id_s.trim).toLong).isDefined)
-          Some(asCleanHeading(heading_name))
+        if ((catching(classOf[Exception]) opt CleanFromCSVString(heading_id_s.trim).value.value.toLong).isDefined)
+          Some(CleanFromCSVString(heading_name))
         else
           None
       } toSet
   }
 
-  private[ypleads] def loadEnglishHeadings(fileName: String): Set[String] = {
+  private[ypleads] def loadEnglishHeadings(fileName: String): Set[CleanlyWrapped[StringFromCSV]] = {
     loadEnglishHeadings(fileLines = scala.io.Source.fromFile(fileName).getLines().toSet)
   }
 
@@ -111,35 +83,36 @@ object Query2BusinessMatcher {
    * @param fileLines
    * @return
    */
-  private[ypleads] def loadSynonymsForEnglishHeadings(fileLines: Set[String]): Set[String] = {
+  private[ypleads] def loadSynonymsForEnglishHeadings(fileLines: Set[String]): Set[CleanlyWrapped[StringFromCSV]] = {
     fileLines.
       map(s => s.split(",")).
       flatMap { a =>
         val Array(synonym, lang, headingCode, _*) = a
-        if ((catching(classOf[Exception]) opt asCleanHeading(headingCode.trim).toLong).isDefined && lang.toUpperCase().equals("EN"))
-          Some(asCleanHeading(synonym))
+        if ((catching(classOf[Exception]) opt CleanFromCSVString(headingCode.trim).value.value.toLong).isDefined && CleanFromCSVString(lang.trim).value.value.toUpperCase().equals("EN"))
+          Some(CleanFromCSVString(synonym))
         else
           None
       } toSet
   }
 
-  private[ypleads] def loadSynonymsForEnglishHeadings(fileName: String): Set[String] = {
+  private[ypleads] def loadSynonymsForEnglishHeadings(fileName: String): Set[CleanlyWrapped[StringFromCSV]] = {
     loadSynonymsForEnglishHeadings(fileLines = scala.io.Source.fromFile(fileName).getLines().toSet)
+  }
+
+  // Does a breakdown of all headings in the input Set.
+  private[ypleads] def getIndividualWordsFrom(headingsOrSynonyms: Set[CleanlyWrapped[StringFromCSV]]): Set[String] = {
+    headingsOrSynonyms.flatMap(breakdown(_))
   }
 
   /**
    * Loads the stop-words, consisting in the (English) headings plus their synonyms, if present.
    * @return
    */
-  private def loadEnglishStopWords(headingsFileName: String, synonymsFileName: Option[String]): Set[String] = {
-    // I split the expressions in individual words:
-    val allWords =
-      loadEnglishHeadings(headingsFileName).map(_.trim().replaceAll(" +", " ").split(" ").toList).flatten
-    (if (synonymsFileName.isDefined) {
-      allWords ++ loadSynonymsForEnglishHeadings(synonymsFileName.get).map(_.trim().replaceAll(" +", " ").split(" ").toList).flatten
-    } else {
-      allWords
-    })
+  private def loadEnglishStopWords(headingsFileName: String, synonymsFileNameOpt: Option[String]): Set[String] = {
+    getIndividualWordsFrom(loadEnglishHeadings(headingsFileName)) ++
+      synonymsFileNameOpt.map { synonymsFileName =>
+        getIndividualWordsFrom(loadEnglishHeadings(headingsFileName))
+      }.getOrElse(Set.empty)
   }
 
   /**
